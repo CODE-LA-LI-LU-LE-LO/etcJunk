@@ -1,4 +1,4 @@
-﻿
+
 #SingleInstance force
 
 ; ahk를 관리자모드로 실행 -시작
@@ -18,6 +18,7 @@ If !(A_IsAdmin || RegExMatch(CommandLine, " /restart(?!\S)"))
 
 global gridXStart, gridYStart, gridXStep, gridYStep, gridXEnd, gridYEnd
 global btnDisX, btnDisY
+global BreakLoop := 0
 
 ; GUI 구성
 Gui, Add, GroupBox, x12    y9  w150  h120 , 분해 시작칸 좌표
@@ -138,12 +139,13 @@ return
 StartProcess:
     ; 스크립트 일시 정지 해제
     Pause, Off
-	BreakLoop = 0
 
     ; 전역 변수로 선언된 변수 사용
     ;~ global vXEndCoord, vYEndCoord
 	global gridXStart, gridYStart, gridXStep, gridYStep, gridXEnd, gridYEnd
 	global btnDisX, btnDisY
+	global BreakLoop
+	BreakLoop = 0
 
     ; GUI 입력값 받기
     Gui, Submit, NoHide
@@ -183,7 +185,7 @@ StartProcess:
     Loop
     {		
 		if (BreakLoop = 1) 
-			goto, EndProcess
+			return
 		
         ; 5-1: 특정 좌표 클릭
         ClickAt(btnDisX, btnDisY)
@@ -203,7 +205,10 @@ StartProcess:
             
             ; 종료점 도달 시 스크립트 종료
             if (currentX = endX) and (currentY = endY)
+            {
+                BreakLoop = 1
                 break
+            }
             
             ; 좌표 업데이트
             currentX++
@@ -214,7 +219,8 @@ StartProcess:
             }
             if (currentY > sizeY)
             {
-                goto, EndProcess
+                BreakLoop = 1
+                break
             }
         }
         
@@ -225,6 +231,8 @@ StartProcess:
 	return
 	
 EndProcess:
+	global BreakLoop
+	BreakLoop = 1
     return  ; 루프 종료 후 반환
 
 ; 특정 좌표를 클릭하는 함수
